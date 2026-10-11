@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["svelte", "vite/client"],
+    "paths": { "@shared/*": ["../../shared/*"] }
+  },
+  "include": ["src/**/*.ts", "src/**/*.svelte", "../../shared/protocol.ts", "../../shared/match.ts", "../../shared/timing.ts"]
+}

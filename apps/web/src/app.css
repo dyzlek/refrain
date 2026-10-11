@@ -1,0 +1,130 @@
+/* Même grammaire que le portfolio et Sillon : Archivo très condensé, Geist Mono, grain, un seul accent. */
+:root {
+  --bg: #0f0e0c;
+  --bg-2: #181714;
+  --bg-3: #23211d;
+  --fg: #ece8df;
+  --muted: #8f8a80;
+  --line: rgba(236, 232, 223, 0.14);
+  --accent: #ff5a2e;
+  --on-accent: #0f0e0c;
+  --ok: #c8f169;
+
+  --font-display: 'Archivo', 'Arial Narrow', sans-serif;
+  --font-body: 'Geist', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+
+  --gutter: clamp(16px, 3vw, 40px);
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+#app { min-height: 100%; display: flex; flex-direction: column; }
+
+h1, h2, h3, p { margin: 0; }
+a { color: inherit; }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; }
+button:disabled { cursor: not-allowed; opacity: 0.4; }
+input, select { font: inherit; color: inherit; }
+ul, ol { list-style: none; margin: 0; padding: 0; }
+::selection { background: var(--accent); color: var(--on-accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.display {
+  font-family: var(--font-display);
+  font-stretch: 62%;
+  font-weight: 800;
+  text-transform: uppercase;
+  line-height: 0.84;
+  letter-spacing: -0.01em;
+}
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.muted { color: var(--muted); }
+.accent { color: var(--accent); }
+.sq { display: inline-block; width: 0.6em; height: 0.6em; background: var(--accent); margin-right: 0.55em; vertical-align: 0.05em; }
+
+/* Champs et boutons : des lignes, pas des boîtes. */
+.field {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+  font-size: 1.15rem;
+  border-radius: 0;
+  transition: border-color 0.2s;
+}
+.field:focus { outline: none; border-color: var(--accent); }
+.field::placeholder { color: var(--muted); }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 48px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.btn:hover:not(:disabled) { border-color: var(--fg); }
+.btn--accent { background: var(--accent); color: var(--on-accent); border-color: var(--accent); }
+.btn--accent:hover:not(:disabled) { background: var(--fg); border-color: var(--fg); }
+
+.chip {
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+.chip[aria-pressed='true'] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chip:hover:not(:disabled):not([aria-pressed='true']) { border-color: var(--fg); }
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 18px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+.topbar a { text-decoration: none; }
+
+.grain {
+  position: fixed; inset: -50%; z-index: 60; pointer-events: none; opacity: 0.06;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain 0.8s steps(4) infinite;
+}
+@keyframes grain {
+  0% { transform: translate(0, 0); } 25% { transform: translate(-3%, 2%); }
+  50% { transform: translate(2%, -3%); } 75% { transform: translate(-1%, 3%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain { animation: none; }
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+}

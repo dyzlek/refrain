@@ -1,0 +1,4 @@
+{
+  "extends": "./tsconfig.base.json",
+  "include": ["shared", "apps/server/src", "apps/server/test", "apps/server/drizzle.config.ts", "vitest.config.ts"]
+}

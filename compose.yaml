@@ -1,0 +1,28 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      DATABASE_URL: postgres://refrain:refrain@db:5432/refrain
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: refrain
+      POSTGRES_PASSWORD: refrain
+      POSTGRES_DB: refrain
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U refrain"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
