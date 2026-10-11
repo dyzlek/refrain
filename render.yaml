@@ -1,0 +1,21 @@
+# Déploiement Render en un clic (Blueprint) : l'app en Docker + un Redis gratuit.
+# PostgreSQL : coller l'URL d'une base Neon (gratuite, sans expiration) dans DATABASE_URL.
+services:
+  - type: web
+    name: refrain
+    runtime: docker
+    plan: free
+    healthCheckPath: /api/health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: refrain-redis
+          property: connectionString
+
+  - type: keyvalue
+    name: refrain-redis
+    plan: free
+    ipAllowList: []
