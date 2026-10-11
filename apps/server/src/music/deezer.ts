@@ -17,6 +17,8 @@ export interface TrackSource {
   /** Accepte un id de thème ou un lien de playlist Deezer. */
   resolve(input: string): Promise<Theme>;
   tracks(themeId: string): Promise<Track[]>;
+  /** Nouveau lien d'extrait pour un titre, quand l'ancien a expiré. */
+  freshPreview?(trackId: number): Promise<string>;
 }
 
 const GENRES: Theme[] = [
@@ -94,6 +96,12 @@ export function deezer(): TrackSource {
       const path = kind === 'chart' ? `/chart/${id}/tracks?limit=100` : `/playlist/${id}/tracks?limit=200`;
       const { data } = await get<{ data: DeezerTrack[] }>(path);
       return data.filter((t) => t.preview && t.readable !== false).map(toTrack);
+    },
+
+    async freshPreview(trackId) {
+      const t = await get<DeezerTrack>(`/track/${trackId}`);
+      if (!t.preview) throw new Error('Extrait indisponible');
+      return t.preview;
     },
   };
 }

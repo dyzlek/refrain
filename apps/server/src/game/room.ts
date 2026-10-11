@@ -61,6 +61,22 @@ interface Current {
 
 type HistoryEntry = Reveal & { trackId: string };
 
+/** Ce qui est sauvegardé (Redis) pour reprendre un salon après un redémarrage du serveur. */
+export interface RoomData {
+  code: string;
+  phase: Phase;
+  theme: Theme;
+  rounds: number;
+  round: number;
+  players: Player[];
+  queue: Track[];
+  spare: Track[];
+  history: HistoryEntry[];
+  startedAt: string;
+  gameId: number | null;
+  lastActive: number;
+}
+
 function shuffle<T>(items: T[]): T[] {
   const a = [...items];
   for (let i = a.length - 1; i > 0; i--) {
@@ -93,6 +109,8 @@ export class Room {
   private gameId: number | null = null;
   /** Incrémenté à chaque remise à zéro : une suite asynchrone d'une partie abandonnée s'arrête d'elle-même. */
   private generation = 0;
+  /** Salon restauré en pleine partie : la manche reprend au retour du premier joueur. */
+  private resumePending = false;
   private readonly t: Timing;
   private readonly now: () => number;
 
@@ -136,6 +154,12 @@ export class Room {
     this.ensureHost();
     this.touch();
     this.changed();
+    if (this.resumePending) {
+      this.resumePending = false;
+      // La manche interrompue est rejouée depuis le début, avec un extrait rechargé.
+      this.round--;
+      void this.nextRound(this.generation);
+    }
     return player;
   }
 
@@ -250,11 +274,8 @@ export class Room {
     let track: Track | undefined = this.queue[this.round - 1];
     let audio: Buffer | null = null;
     while (track && !audio) {
-      try {
-        audio = await this.deps.fetchAudio(track.preview);
-      } catch {
-        track = this.spare.shift();
-      }
+      audio = await this.loadAudio(track);
+      if (!audio) track = this.spare.shift();
     }
     if (gen !== this.generation) return;
     if (!track || !audio) {
@@ -267,6 +288,21 @@ export class Room {
     this.timer('ready', this.t.readyTimeoutMs, () => this.beginPlayback());
     this.changed();
     this.checkReady();
+  }
+
+  /** Les liens d'extraits Deezer expirent au bout de 15 minutes : on en redemande un frais si besoin. */
+  private async loadAudio(track: Track): Promise<Buffer | null> {
+    try {
+      return await this.deps.fetchAudio(track.preview);
+    } catch {
+      if (!this.deps.source.freshPreview) return null;
+      try {
+        track.preview = await this.deps.source.freshPreview(track.id);
+        return await this.deps.fetchAudio(track.preview);
+      } catch {
+        return null;
+      }
+    }
   }
 
   markReady(playerId: string, round: number): void {
@@ -474,6 +510,55 @@ export class Room {
       history: this.history.map(({ trackId: _, ...r }) => r),
       gameId: this.gameId,
     };
+  }
+
+  serialize(): RoomData {
+    return {
+      code: this.code,
+      phase: this.phase,
+      theme: this.theme,
+      rounds: this.rounds,
+      round: this.round,
+      players: [...this.players.values()],
+      queue: this.queue,
+      spare: this.spare,
+      history: this.history,
+      startedAt: this.startedAt.toISOString(),
+      gameId: this.gameId,
+      lastActive: this.lastActive,
+    };
+  }
+
+  static restore(data: RoomData, deps: RoomDeps): Room {
+    const room = new Room(data.code, deps);
+    const now = room.now();
+    for (const p of data.players) {
+      // Les sockets d'avant le redémarrage n'existent plus : chacun revient avec son sessionId.
+      room.players.set(p.id, { ...p, socketId: null, offlineSince: p.offlineSince ?? now, rtt: 0 });
+    }
+    room.theme = data.theme;
+    room.rounds = data.rounds;
+    room.round = data.round;
+    room.queue = data.queue;
+    room.spare = data.spare;
+    room.history = data.history;
+    room.startedAt = new Date(data.startedAt);
+    room.gameId = data.gameId;
+    room.lastActive = data.lastActive;
+
+    if (data.phase === 'lobby' || data.phase === 'ended') {
+      room.phase = data.phase;
+    } else if (data.phase === 'reveal') {
+      // La manche était finie : on passera directement à la suivante.
+      room.phase = 'loading';
+      room.round = data.round + 1;
+      room.resumePending = true;
+    } else {
+      room.phase = 'loading';
+      room.resumePending = true;
+    }
+    if (room.resumePending) for (const p of room.players.values()) p.lockedOut = false;
+    return room;
   }
 
   destroy(): void {

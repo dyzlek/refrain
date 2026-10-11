@@ -5,6 +5,7 @@ const port = Number(process.env.PORT ?? 3000);
 
 const { app } = await buildApp({
   databaseUrl: process.env.DATABASE_URL,
+  redisUrl: process.env.REDIS_URL,
   // Sans DATABASE_URL, les parties sont gardées dans .data/ grâce à PGlite.
   databaseDir: process.env.PGLITE_DIR ?? fileURLToPath(new URL('../.data', import.meta.url)),
   clientDir: process.env.CLIENT_DIR ?? fileURLToPath(new URL('../../web/dist', import.meta.url)),

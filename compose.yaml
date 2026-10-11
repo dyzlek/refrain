@@ -5,8 +5,11 @@ services:
       - "3000:3000"
     environment:
       DATABASE_URL: postgres://refrain:refrain@db:5432/refrain
+      REDIS_URL: redis://redis:6379
     depends_on:
       db:
+        condition: service_healthy
+      redis:
         condition: service_healthy
     restart: unless-stopped
 
@@ -24,5 +27,18 @@ services:
       retries: 10
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    # Sauvegarde sur disque : les salons survivent aussi à un redémarrage de Redis.
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      retries: 10
+    restart: unless-stopped
+
 volumes:
   pgdata:
+  redisdata:

@@ -3,6 +3,7 @@ import Fastify from 'fastify';
 import fastifyStatic from '@fastify/static';
 import type { GameEvent } from '@shared/protocol';
 import { Rooms } from './game/rooms.ts';
+import { memoryStore, redisStore, type RoomStore } from './game/store.ts';
 import type { Timing } from './game/room.ts';
 import { deezer, fetchAudio as fetchDeezerAudio, type TrackSource } from './music/deezer.ts';
 import { gameDetail, leaderboard, openDatabase, saveGame } from './db/index.ts';
@@ -11,6 +12,9 @@ import { attachRealtime, broadcast, createIo } from './realtime.ts';
 export interface AppOptions {
   databaseUrl?: string;
   databaseDir?: string;
+  /** Avec Redis, les salons survivent à un redémarrage ou un déploiement. */
+  redisUrl?: string;
+  store?: RoomStore;
   clientDir?: string;
   corsOrigin?: string;
   source?: TrackSource;
@@ -24,6 +28,9 @@ export async function buildApp(opts: AppOptions = {}) {
   const database = await openDatabase({ url: opts.databaseUrl, dir: opts.databaseDir });
   const source = opts.source ?? deezer();
   const io = createIo(app.server, opts.corsOrigin);
+  const store =
+    opts.store ??
+    (opts.redisUrl ? await redisStore(opts.redisUrl, (err) => app.log.error(err, 'Redis')) : memoryStore());
 
   const rooms = new Rooms({
     source,
@@ -39,10 +46,16 @@ export async function buildApp(opts: AppOptions = {}) {
         return null;
       }
     },
-  });
+  }, store);
+  const restored = await rooms.restore();
+  if (restored) app.log.info(`${restored} salon(s) restauré(s)`);
   const stopRealtime = attachRealtime(io, rooms);
 
-  app.get('/api/health', async () => ({ ok: true, rooms: rooms.all().length }));
+  app.get('/api/health', async () => ({
+    ok: true,
+    rooms: rooms.all().length,
+    storage: opts.store ? 'custom' : opts.redisUrl ? 'redis' : 'memory',
+  }));
   app.get('/api/themes', async () => source.themes());
   app.get('/api/leaderboard', async () => leaderboard(database.db));
   app.get<{ Params: { id: string } }>('/api/games/:id', async (req, reply) => {
@@ -64,10 +77,14 @@ export async function buildApp(opts: AppOptions = {}) {
     );
   }
 
-  app.addHook('onClose', async () => {
+  // Les websockets d'abord : sinon le serveur HTTP attend indéfiniment qu'elles se ferment.
+  app.addHook('preClose', async () => {
     stopRealtime();
-    rooms.close();
-    io.close();
+    io.disconnectSockets(true);
+    await io.close();
+  });
+  app.addHook('onClose', async () => {
+    await rooms.close();
     await database.close();
   });
 
