@@ -18,11 +18,6 @@
   }
 </script>
 
-<header class="topbar">
-  <span class="mono"><span class="sq"></span>Refrain</span>
-  <a class="mono" href="/classement" onclick={(e) => { e.preventDefault(); navigate({ name: 'board' }); }}>Classement →</a>
-</header>
-
 <main class="home">
   <div class="viz" aria-hidden="true"><Visualizer idle /></div>
 
@@ -63,6 +58,7 @@
     <li><span>02</span>Choisis un style ou colle une playlist Deezer</li>
     <li><span>03</span>Buzze (espace) et tape le titre ou l’artiste</li>
   </ol>
+  <a class="board mono" href="/classement" onclick={(e) => { e.preventDefault(); navigate({ name: 'board' }); }}>Classement →</a>
 </main>
 
 <style>
@@ -89,7 +85,7 @@
   .title {
     position: relative;
     grid-column: 1 / -1;
-    font-size: clamp(6rem, 24vw, 22rem);
+    font-size: clamp(4rem, 24vw, 22rem);
   }
   .lede { position: relative; max-width: 34ch; font-size: 1.1rem; align-self: start; }
   .panel {
@@ -109,6 +105,7 @@
   .error { color: var(--accent); }
   .rules { position: relative; display: flex; flex-direction: column; gap: 6px; align-self: end; }
   .rules span { color: var(--accent); margin-right: 12px; }
+  .board { position: relative; align-self: end; justify-self: start; text-decoration: none; border-bottom: 1px solid var(--accent); padding-bottom: 2px; }
 
   @media (max-width: 760px) {
     .home { grid-template-columns: 1fr; grid-template-rows: auto; }
