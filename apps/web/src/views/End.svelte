@@ -9,7 +9,7 @@
     s.history.filter((h) => h.reactionMs !== null).sort((a, b) => a.reactionMs! - b.reactionMs!)[0] ?? null,
   );
   const found = $derived(s.history.filter((h) => h.winnerId).length);
-  const seconds = (ms: number) => (ms / 1000).toLocaleString('fr-FR', { maximumFractionDigits: 1 });
+  const seconds = (ms: number) => (ms / 1000).toLocaleString('fr-FR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 </script>
 
 <header class="topbar">

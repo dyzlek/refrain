@@ -20,7 +20,7 @@
     <li class:me={p.id === me} class:off={!p.online} class:buzzer={p.id === buzzer} class:locked={p.lockedOut} animate:flip={{ duration: 400 }}>
       <span class="rank mono">{String(i + 1).padStart(2, '0')}</span>
       <span class="name">
-        {p.name}{#if p.host}<span class="tag mono">hôte</span>{/if}{#if p.id === me}<span class="tag mono">toi</span>{/if}
+        <span class="label">{p.name}</span>{#if p.host}<span class="tag mono">hôte</span>{/if}
       </span>
       <span class="ping mono muted">{ping(p)}</span>
       <span class="score display">{p.score}</span>
@@ -41,8 +41,10 @@
   }
   .compact li { padding: 8px 0; }
   .rank { color: var(--muted); }
-  .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .tag { margin-left: 8px; font-size: 0.62rem; color: var(--muted); border: 1px solid var(--line); padding: 1px 5px; vertical-align: 0.15em; }
+  /* Le pseudo se tronque, jamais l'étiquette. Le joueur courant est en couleur d'accent. */
+  .name { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+  .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .tag { flex-shrink: 0; font-size: 0.62rem; color: var(--muted); border: 1px solid var(--line); padding: 1px 5px; vertical-align: 0.15em; }
   .score { font-size: 1.9rem; text-align: right; }
   .me .name { color: var(--accent); }
   .off { opacity: 0.4; }

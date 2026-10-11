@@ -4,6 +4,21 @@ Blind test multijoueur en temps réel. On crée un salon, on partage le code, et
 
 `TypeScript` `Svelte 5` `Vite` `Node.js` `Fastify` `Socket.IO` `Redis` `PostgreSQL` `Drizzle ORM` `Web Audio` `Docker` `GitHub Actions`
 
+![Une manche en cours : le visualiseur réagit à la musique, le buzzer au centre, les scores et le ping de chaque joueur à droite](docs/ecoute.png)
+
+| | |
+|---|---|
+| ![Accueil](docs/accueil.png) | ![Salon d’attente : code à partager, styles Deezer ou playlist, nombre de manches](docs/salon.png) |
+| **Accueil** : un pseudo, un salon | **Salon d’attente** : code à partager, style ou playlist Deezer |
+| ![Un joueur a buzzé : la musique se coupe pour tout le monde](docs/buzz.png) | ![Révélation : pochette, titre, gagnant, temps de réaction et points](docs/revelation.png) |
+| **Buzz** : la musique se coupe partout, Léa (barrée) s’est déjà trompée | **Révélation** : trouvé par Nico en 6,4 s, +167 points |
+| ![Fin de partie : podium et récapitulatif des morceaux](docs/fin.png) | ![Classement général](docs/classement.png) |
+| **Fin de partie** : podium, morceau trouvé le plus vite, partie enregistrée | **Classement** général, tiré de PostgreSQL |
+
+<p align="center"><img src="docs/mobile.png" width="300" alt="La même manche sur téléphone" /><br /><sub>Sur téléphone</sub></p>
+
+Les captures viennent d’une vraie partie (extraits Deezer, 4 joueurs dont 3 robots) générée par [`scripts/screenshots.ts`](scripts/screenshots.ts).
+
 ## Ce qu’il fait
 
 - **Salons à code** (4 caractères, sans I/O/0/1 pour se dicter à voix haute), lien d’invitation, jusqu’à 16 joueurs.
