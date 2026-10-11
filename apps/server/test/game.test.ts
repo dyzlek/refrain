@@ -147,7 +147,9 @@ describe('partie complète', () => {
     expect(ended.history).toHaveLength(3);
     const board = await (await fetch(`${url}/api/leaderboard`)).json();
     expect(board.games).toBeGreaterThanOrEqual(1);
-    expect(board.best.map((b: { name: string }) => b.name)).toEqual(expect.arrayContaining(['Alice', 'Bob']));
+    // Bob n'a rien trouvé : les scores nuls ne vont pas au classement.
+    expect(board.best.map((b: { name: string }) => b.name)).toEqual(expect.arrayContaining(['Alice']));
+    expect(board.fastest[0].name).toBe('Alice');
     const detail = await (await fetch(`${url}/api/games/${ended.gameId}`)).json();
     expect(detail.rounds).toHaveLength(3);
   }, 15_000);
