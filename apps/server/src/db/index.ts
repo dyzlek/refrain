@@ -1,6 +1,6 @@
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { desc, eq, isNotNull, asc, sql } from 'drizzle-orm';
+import { asc, desc, eq, gt, isNotNull, sql } from 'drizzle-orm';
 import type { PgDatabase, PgQueryResultHKT } from 'drizzle-orm/pg-core';
 import * as schema from './schema.ts';
 
@@ -82,6 +82,7 @@ export async function leaderboard(db: Db) {
     })
     .from(schema.results)
     .innerJoin(schema.games, eq(schema.results.gameId, schema.games.id))
+    .where(gt(schema.results.score, 0))
     .orderBy(desc(schema.results.score))
     .limit(10);
 
